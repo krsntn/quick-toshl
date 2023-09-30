@@ -56,7 +56,7 @@ const tagsOptions = {
   KTM: "18635533",
 };
 
-const Entry = ({ i, onChange, onRemove }) => {
+const Entry = ({ data, i, onChange, onRemove }) => {
   const removeEntry = () => {
     onRemove(i);
   };
@@ -70,14 +70,12 @@ const Entry = ({ i, onChange, onRemove }) => {
   });
 
   useEffect(() => {
-    const { date, category, tags, amount, desc } = entryData;
-    if (date && category && tags && amount && desc) {
-      onChange(i, entryData);
-    }
-  }, [i, entryData, onChange]);
+    onChange(i, entryData);
+  }, [i, onChange, entryData]);
 
   const toggleTag = (event) => {
     const { value, state } = event.target.dataset;
+
     setEntryData((prev) => ({
       ...prev,
       tags:
@@ -89,6 +87,65 @@ const Entry = ({ i, onChange, onRemove }) => {
 
   return (
     <div className="flex flex-col gap-2">
+      <div className="self-start gap-2 border border-dotted">
+        <Button
+          variant={"ghost"}
+          onClick={() => {
+            setEntryData((prev) => ({
+              ...prev,
+              category: categoryOptions.FoodDrinks,
+              tags: [
+                tagsOptions.Dating,
+                tagsOptions.Delivery,
+                tagsOptions.Lunch,
+              ],
+            }));
+          }}
+        >
+          Delivery Lunch
+        </Button>
+        <Button
+          variant={"ghost"}
+          onClick={() => {
+            setEntryData((prev) => ({
+              ...prev,
+              category: categoryOptions.FoodDrinks,
+              tags: [
+                tagsOptions.Dating,
+                tagsOptions.Delivery,
+                tagsOptions.Dinner,
+              ],
+            }));
+          }}
+        >
+          Delivery Dinner
+        </Button>
+        <Button
+          variant={"ghost"}
+          onClick={() => {
+            setEntryData((prev) => ({
+              ...prev,
+              category: categoryOptions.FoodDrinks,
+              tags: [tagsOptions.Dating, tagsOptions.Lunch],
+            }));
+          }}
+        >
+          Lunch
+        </Button>
+        <Button
+          variant={"ghost"}
+          onClick={() => {
+            setEntryData((prev) => ({
+              ...prev,
+              category: categoryOptions.FoodDrinks,
+              tags: [tagsOptions.Dating, tagsOptions.Dinner],
+            }));
+          }}
+        >
+          Dinner
+        </Button>
+      </div>
+
       <div className="flex items-start gap-2">
         <div className={colCss}>
           <Label htmlFor="fc">Date</Label>
@@ -98,11 +155,11 @@ const Entry = ({ i, onChange, onRemove }) => {
                 variant={"outline"}
                 className={cn(
                   "w-[280px] justify-start text-left font-normal",
-                  !entryData.date && "text-muted-foreground",
+                  !data.date && "text-muted-foreground",
                 )}
               >
-                {entryData.date ? (
-                  format(entryData.date, "PPP")
+                {data.date ? (
+                  format(data.date, "PPP")
                 ) : (
                   <span>Pick a date</span>
                 )}
@@ -130,7 +187,7 @@ const Entry = ({ i, onChange, onRemove }) => {
               <div className="rounded-md border">
                 <Calendar
                   mode="single"
-                  selected={entryData.date}
+                  selected={data.date}
                   onSelect={(value) =>
                     setEntryData((prev) => ({ ...prev, date: value }))
                   }
@@ -147,6 +204,7 @@ const Entry = ({ i, onChange, onRemove }) => {
             onValueChange={(value) =>
               setEntryData((prev) => ({ ...prev, category: value }))
             }
+            value={data.category}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Category" />
@@ -169,6 +227,7 @@ const Entry = ({ i, onChange, onRemove }) => {
             onChange={(event) =>
               setEntryData((prev) => ({ ...prev, amount: event.target.value }))
             }
+            value={data.amount}
           />
         </div>
 
@@ -179,6 +238,7 @@ const Entry = ({ i, onChange, onRemove }) => {
             onChange={(event) =>
               setEntryData((prev) => ({ ...prev, desc: event.target.value }))
             }
+            value={data.desc}
           />
         </div>
 
@@ -195,7 +255,7 @@ const Entry = ({ i, onChange, onRemove }) => {
             <Toggle
               key={value}
               data-value={value}
-              data-state={entryData.tags.includes(value) ? "on" : "off"}
+              data-state={data.tags.includes(value) ? "on" : "off"}
               onClick={toggleTag}
             >
               {label}
