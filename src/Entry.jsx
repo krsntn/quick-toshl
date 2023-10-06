@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { addDays, format } from "date-fns";
 import {
   Select,
@@ -21,57 +21,25 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { categoryOptions, tagsOptions } from "./utils/data";
 
-const categoryOptions = {
-  FoodDrinks: "45288150",
-  Transport: "45288154",
-  Grocery: "66315236",
-  Other: "49909576",
-  ClothingFootwear: "45288151",
-  Goods: "49627078",
-  HealthPersonalCare: "45288153",
-  Fun: "49627216",
-  Sports: "45288156",
-  Salary: "45288163",
-  Bill: "65656652",
-  unsorted: "unsorted",
+const initEntryData = {
+  date: undefined,
+  category: undefined,
+  tags: [],
+  amount: undefined,
+  desc: undefined,
 };
 
-const tagsOptions = {
-  Dating: "19800891",
-  Delivery: "72377168",
-  Lunch: "18323682",
-  Dinner: "18323684",
-  Drinks: "18747482",
-  Dessert: "19170811",
-  Snacks: "18756337",
-  BreakFast: "18323679",
-  Parking: "18747614",
-  Me: "20034015",
-  Movie: "18758782",
-  Fruit: "22290902",
-  TouchnGo: "20124621",
-  Petrol: "19317448",
-  Work: "18650735",
-  KTM: "18635533",
-};
+const Entry = ({ onSubmit }) => {
+  const [entryData, setEntryData] = useState(() => initEntryData);
 
-const Entry = ({ data, i, onChange, onRemove }) => {
-  const removeEntry = () => {
-    onRemove(i);
+  const submit = () => {
+    const { date, category, tags, amount, desc } = entryData;
+    if (date && category && tags.length > 0 && amount && desc) {
+      onSubmit(entryData);
+    }
   };
-
-  const [entryData, setEntryData] = useState({
-    date: undefined,
-    category: undefined,
-    tags: [],
-    amount: undefined,
-    desc: undefined,
-  });
-
-  useEffect(() => {
-    onChange(i, entryData);
-  }, [i, onChange, entryData]);
 
   const toggleTag = (event) => {
     const { value, state } = event.target.dataset;
@@ -155,11 +123,11 @@ const Entry = ({ data, i, onChange, onRemove }) => {
                 variant={"outline"}
                 className={cn(
                   "w-[280px] justify-start text-left font-normal",
-                  !data.date && "text-muted-foreground",
+                  !entryData.date && "text-muted-foreground",
                 )}
               >
-                {data.date ? (
-                  format(data.date, "PPP")
+                {entryData.date ? (
+                  format(entryData.date, "PPP")
                 ) : (
                   <span>Pick a date</span>
                 )}
@@ -187,7 +155,7 @@ const Entry = ({ data, i, onChange, onRemove }) => {
               <div className="rounded-md border">
                 <Calendar
                   mode="single"
-                  selected={data.date}
+                  selected={entryData.date}
                   onSelect={(value) =>
                     setEntryData((prev) => ({ ...prev, date: value }))
                   }
@@ -204,7 +172,7 @@ const Entry = ({ data, i, onChange, onRemove }) => {
             onValueChange={(value) =>
               setEntryData((prev) => ({ ...prev, category: value }))
             }
-            value={data.category}
+            value={entryData.category}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Category" />
@@ -227,7 +195,7 @@ const Entry = ({ data, i, onChange, onRemove }) => {
             onChange={(event) =>
               setEntryData((prev) => ({ ...prev, amount: event.target.value }))
             }
-            value={data.amount}
+            value={entryData.amount || ""}
           />
         </div>
 
@@ -238,14 +206,8 @@ const Entry = ({ data, i, onChange, onRemove }) => {
             onChange={(event) =>
               setEntryData((prev) => ({ ...prev, desc: event.target.value }))
             }
-            value={data.desc}
+            value={entryData.desc || ""}
           />
-        </div>
-
-        <div className={`${colCss} justify-end`}>
-          <Button variant={"link"} onClick={removeEntry}>
-            X
-          </Button>
         </div>
       </div>
 
@@ -255,7 +217,7 @@ const Entry = ({ data, i, onChange, onRemove }) => {
             <Toggle
               key={value}
               data-value={value}
-              data-state={data.tags.includes(value) ? "on" : "off"}
+              data-state={entryData.tags.includes(value) ? "on" : "off"}
               onClick={toggleTag}
             >
               {label}
@@ -263,6 +225,10 @@ const Entry = ({ data, i, onChange, onRemove }) => {
           ))}
         </div>
       </div>
+
+      <Button className="h-12" onClick={submit}>
+        Add
+      </Button>
     </div>
   );
 };

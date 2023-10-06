@@ -4,17 +4,10 @@ import "./App.css";
 import Entry from "./Entry";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-
-const data = {
-  date: null,
-  category: null,
-  tags: [],
-  amount: null,
-  desc: null,
-};
+import { categoryOptions, tagsOptions } from "./utils/data";
 
 const App = () => {
-  const [entries, setEntries] = useState(() => [structuredClone(data)]);
+  const [entries, setEntries] = useState([]);
   const [output, setOutput] = useState();
 
   useEffect(() => {
@@ -25,10 +18,6 @@ const App = () => {
       : "light";
     root.classList.add(systemTheme);
   }, []);
-
-  const addEntry = () => {
-    setEntries((prev) => [...prev, structuredClone(data)]);
-  };
 
   const onGenerate = async () => {
     const outs = entries
@@ -72,12 +61,8 @@ const App = () => {
     }
   };
 
-  const onChange = useCallback((index, data) => {
-    setEntries((prevEntries) => {
-      const newEntries = [...prevEntries];
-      newEntries[index] = { ...newEntries[index], ...data };
-      return newEntries;
-    });
+  const onSubmit = useCallback((data) => {
+    setEntries((prevEntries) => [...prevEntries, data]);
   }, []);
 
   const onRemove = (i) => {
@@ -86,19 +71,53 @@ const App = () => {
 
   return (
     <div className="p-6 m-auto min-h-[100dvh] w-full max-w-7xl flex flex-col gap-2">
-      {entries.map((x, index) => (
-        <Fragment key={index}>
-          <Entry data={x} i={index} onChange={onChange} onRemove={onRemove} />
-          <Separator />
-        </Fragment>
-      ))}
+      <div className="flex justify-end">
+        <Button className="h-12" onClick={onGenerate}>
+          Generate
+        </Button>
+      </div>
+      <Entry onSubmit={onSubmit} />
       <div className="my-2" />
-      <Button className="h-12" onClick={addEntry}>
-        Add New Entry
-      </Button>
-      <Button className="h-12" onClick={onGenerate}>
-        Generate
-      </Button>
+      <Separator />
+
+      {entries.map((x, index) => {
+        let c = "";
+        let t = [];
+
+        for (const property in tagsOptions) {
+          if (x.tags.includes(tagsOptions[property])) {
+            t.push(property);
+          }
+        }
+        for (const property in categoryOptions) {
+          if (categoryOptions[property] === x.category) {
+            c = property;
+            break;
+          }
+        }
+
+        return (
+          <Fragment key={index}>
+            <div className="flex justify-between">
+              <div className="flex gap-4">
+                <div>{format(x.date, "yyyy-MM-dd")}</div>
+                <div>{c}</div>
+                <div>{t.join(", ")}</div>
+                <div>{x.amount}</div>
+                <div>{x.desc}</div>
+              </div>
+              <Button
+                className="py-0 h-auto"
+                variant={"link"}
+                onClick={() => onRemove(index)}
+              >
+                X
+              </Button>
+            </div>
+            <Separator />
+          </Fragment>
+        );
+      })}
 
       {output && <p className="text-left mt-6">{output} location.reload();</p>}
     </div>
