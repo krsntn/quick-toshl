@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { addDays, format } from "date-fns";
 import {
   Select,
@@ -21,6 +21,15 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+
 import { categoryOptions, tagsOptions } from "./utils/data";
 
 const initEntryData = {
@@ -33,13 +42,26 @@ const initEntryData = {
 
 const Entry = ({ onSubmit }) => {
   const [entryData, setEntryData] = useState(() => initEntryData);
+  const [searchInput, setSearchInput] = useState("");
 
-  const submit = () => {
+  const submit = useCallback(() => {
     const { date, category, tags, amount, desc } = entryData;
     if (date && category && tags.length > 0 && amount && desc) {
       onSubmit(entryData);
     }
-  };
+  }, [entryData, onSubmit]);
+
+  useEffect(() => {
+    const down = (e) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        submit();
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [submit]);
 
   const toggleTag = (event) => {
     const { value, state } = event.target.dataset;
@@ -211,7 +233,42 @@ const Entry = ({ onSubmit }) => {
         </div>
       </div>
 
-      <div className={`flex items-center`}>
+      <div className={`flex items-start gap-2`}>
+        <div className="flex flex-wrap gap-1">
+          <Command>
+            <CommandInput
+              value={searchInput}
+              onInput={(e) => setSearchInput(e.target.value)}
+              placeholder="Search tags..."
+            />
+            <CommandList className="h-28">
+              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandGroup>
+                {Object.entries(tagsOptions).map(([label, value]) => (
+                  <CommandItem
+                    key={value}
+                    value={label}
+                    onSelect={(currentValue) => {
+                      const tagValue = Object.entries(tagsOptions).find(
+                        ([label]) => label.toLowerCase() === currentValue,
+                      )[1];
+                      setEntryData((prev) => ({
+                        ...prev,
+                        tags: !prev.tags.find((tag) => tag === tagValue)
+                          ? [...prev.tags, tagValue]
+                          : prev.tags.filter((tag) => tag !== tagValue),
+                      }));
+                      setSearchInput("");
+                    }}
+                  >
+                    {label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </div>
+
         <div className="flex flex-wrap gap-1">
           {Object.entries(tagsOptions).map(([label, value]) => (
             <Toggle
